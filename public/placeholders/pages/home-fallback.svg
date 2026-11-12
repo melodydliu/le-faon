@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1400" viewBox="0 0 2000 1400">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="rgb(160 161 141)"/>
+      <stop offset="1" stop-color="rgb(100 102 80)"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.78" cy="0.18" r="0.7">
+      <stop offset="0" stop-color="rgb(255 236 200)" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="rgb(255 236 200)" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="2000" height="1400" fill="url(#g)"/>
+  
+  <path d="M0 1300 C300 1180 600 1420 900 1280 C1200 1140 1400 1260 1600 1180 L1600 2000 L0 2000 Z" transform="translate(440 0) scale(0.7)" fill="rgb(139 141 116)" fill-opacity="0.5"/>
+  <rect width="2000" height="1400" fill="url(#sun)"/>
+  <text x="1000" y="1316" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="28" letter-spacing="5.04" fill="rgb(246 243 238 / 0.82)">HOME — STILL — GOLDEN HOUR</text>
+  <text x="1000" y="1260" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="30.800000000000004" fill="rgb(246 243 238 / 0.82)">Placeholder</text>
+</svg>
