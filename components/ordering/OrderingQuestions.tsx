@@ -5,7 +5,7 @@ import type { OrderingQuestion } from "@/lib/content/ordering";
 export function OrderingQuestions({ questions }: { questions: OrderingQuestion[] }) {
   return (
     <section aria-labelledby="questions-title" className="px-gutter bg-surface py-20 lg:py-28">
-      <div className="mx-auto max-w-[44rem]">
+      <div className="reveal mx-auto max-w-[44rem]">
         <h2 id="questions-title" className="display-md mb-8 text-center">
           Questions
         </h2>

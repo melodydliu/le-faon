@@ -13,8 +13,8 @@ export function CatalogGrid({ products }: { products: Product[] }) {
       </h2>
       <ul className="grid grid-cols-2 gap-x-px gap-y-12 lg:grid-cols-3 lg:gap-y-16">
         {products.map((product, i) => (
-          <li key={product.slug} className="[&_h3]:px-5 [&_p]:px-5 lg:[&_h3]:px-6 lg:[&_p]:px-6">
-            <ProductCard product={product} lcp={i === 0} sizes="(min-width: 1024px) 33vw, 50vw" align="center" />
+          <li key={product.slug} className="reveal [&_h3]:px-5 [&_p]:px-5 lg:[&_h3]:px-6 lg:[&_p]:px-6">
+            <ProductCard product={product} lcp={i === 0} sizes="(min-width: 1024px) 33vw, 50vw" align="center" morph />
           </li>
         ))}
       </ul>

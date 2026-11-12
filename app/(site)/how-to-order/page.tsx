@@ -3,6 +3,7 @@ import { OrderingSteps } from "@/components/ordering/OrderingSteps";
 import { getOrdering } from "@/lib/data/content";
 import { pageMedia } from "@/lib/images";
 import { pageMetadata } from "@/lib/seo";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 export const metadata: Metadata = pageMetadata({
   title: "How to Order",
@@ -13,5 +14,9 @@ export const metadata: Metadata = pageMetadata({
 
 export default async function HowToOrderPage() {
   const content = await getOrdering();
-  return <OrderingSteps content={content} image={pageMedia.howToOrderImage} />;
+  return (
+    <PageTransition>
+      <OrderingSteps content={content} image={pageMedia.howToOrderImage} />
+    </PageTransition>
+  );
 }

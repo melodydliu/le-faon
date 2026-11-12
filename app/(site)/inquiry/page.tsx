@@ -3,6 +3,7 @@ import { InquiryView } from "@/components/inquiry/InquiryView";
 import type { InquiryProduct } from "@/components/inquiry/types";
 import { listProducts } from "@/lib/data/catalog";
 import { pageMetadata } from "@/lib/seo";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 export const metadata: Metadata = {
   ...pageMetadata({
@@ -22,5 +23,9 @@ export default async function InquiryPage() {
     colorways: p.colorways.map((c) => ({ id: c.id, name: c.name, thumb: c.images[0] })),
   }));
 
-  return <InquiryView products={products} />;
+  return (
+    <PageTransition>
+      <InquiryView products={products} />
+    </PageTransition>
+  );
 }

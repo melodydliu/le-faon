@@ -61,14 +61,20 @@ export function MobileMenu({ open, pathname, onClose }: Props) {
 
       <nav aria-label="Main" className="px-gutter flex flex-1 flex-col justify-center">
         <ul className="flex flex-col gap-2">
-          {links.map((link) => {
+          {links.map((link, i) => {
             const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
             const showCount = link.href === inquiryLink.href && count > 0;
             return (
-              <li key={link.href}>
+              <li
+                key={link.href}
+                className="motion-safe:animate-[rise-in_700ms_var(--ease-out)_both]"
+                style={{ animationDelay: `${120 + i * 60}ms` }}
+              >
                 <Link
                   href={link.href}
-                  onClick={onClose}
+                  // Navigating away closes the menu as part of the page transition.
+                  // Only the current page's own link needs to close it by hand.
+                  onClick={link.href === pathname ? onClose : undefined}
                   aria-current={active ? "page" : undefined}
                   className={`display-lg inline-flex min-h-14 items-baseline gap-3 ${
                     active ? "text-ink italic" : "text-ink"

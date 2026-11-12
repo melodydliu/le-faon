@@ -19,8 +19,8 @@ export async function HomeHero() {
       <HomeMenu />
 
       <div className="px-gutter absolute inset-x-0 bottom-0 bg-linear-to-t from-[rgb(42_37_20/0.4)] via-[rgb(42_37_20/0.12)] to-transparent pt-24 pb-[max(2.25rem,env(safe-area-inset-bottom))] lg:from-[rgb(42_37_20/0.45)] lg:pt-28 lg:pb-9">
-        <div className="flex justify-center lg:mb-8">
-          <Logo tone="light" layout="stacked" wordmark={false} className="[&>span:first-child]:h-9" />
+        <div className="flex justify-center motion-safe:animate-[rise-in_1400ms_var(--ease-out)_300ms_both] lg:mb-8">
+          <Logo tone="light" layout="stacked" wordmark={false} className="[&>span:first-child]:h-9 lg:[&>span:first-child]:h-11" />
         </div>
         <HomeLinks />
       </div>

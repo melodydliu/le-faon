@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense, useCallback, useRef, useState } from "react";
+import { Suspense, useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { InquiryLink } from "@/components/layout/InquiryLink";
 import { MenuIcon } from "@/components/ui/MenuIcon";
@@ -38,9 +38,11 @@ function HeaderView({ pathname }: { pathname: string }) {
     setOpenOn(null);
     menuButton.current?.focus();
   }, []);
+  // Close it too when this page is hidden after navigating away (Next keeps it mounted).
+  useLayoutEffect(() => () => setOpenOn(null), []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg pt-[env(safe-area-inset-top)]">
+    <header className="sticky top-0 z-40 border-b border-line bg-bg pt-[env(safe-area-inset-top)] [view-transition-name:site-header]">
       <div className="px-gutter grid h-[var(--header-h)] grid-cols-[1fr_auto] items-center lg:grid-cols-[1fr_auto_1fr]">
         <Link href="/" aria-label="Le Faon, home" className="justify-self-start py-2">
           <Logo />

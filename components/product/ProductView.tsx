@@ -5,6 +5,7 @@ import { AddedSheet, type AddedNotice } from "@/components/product/AddedSheet";
 import { ColorwaySwatches } from "@/components/product/ColorwaySwatches";
 import { Gallery } from "@/components/product/Gallery";
 import { Lightbox } from "@/components/product/Lightbox";
+import { pieceTransitionName } from "@/components/layout/PageTransition";
 import { SizeGuideDialog } from "@/components/product/SizeGuideDialog";
 import { SizeSelector } from "@/components/product/SizeSelector";
 import { addToInquiry } from "@/lib/inquiry/store";
@@ -56,7 +57,12 @@ export function ProductView({ product, sizeGuide, children }: Props) {
     <>
       <div className="lg:px-gutter grid gap-8 lg:grid-cols-12 lg:gap-12 lg:pt-10">
         <div className="lg:col-span-7">
-          <Gallery images={colorway.images} colorKey={colorway.id} onOpen={setLightboxAt} />
+          <Gallery
+            images={colorway.images}
+            colorKey={colorway.id}
+            morphName={colorway.id === product.colorways[0].id ? pieceTransitionName(product.slug) : undefined}
+            onOpen={setLightboxAt}
+          />
         </div>
 
         <div className="px-gutter lg:col-span-5 lg:px-0">

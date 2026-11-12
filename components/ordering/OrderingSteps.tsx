@@ -27,7 +27,7 @@ export function OrderingSteps({ content, image }: { content: OrderingContent; im
             {content.steps.map((step, i) => {
               const last = i === content.steps.length - 1;
               return (
-                <li key={step.title} className="relative grid grid-cols-[2.75rem_1fr] gap-x-5 sm:gap-x-8">
+                <li key={step.title} className="reveal relative grid grid-cols-[2.75rem_1fr] gap-x-5 sm:gap-x-8">
                   {!last && <span aria-hidden="true" className="absolute top-12 bottom-0 left-[1.375rem] w-px bg-line-strong" />}
                   <span className="relative grid h-11 w-11 place-items-center rounded-full border border-line-strong bg-bg font-display text-[1.25rem] italic">
                     {i + 1}

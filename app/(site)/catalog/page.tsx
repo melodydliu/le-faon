@@ -4,6 +4,7 @@ import { CatalogIntro } from "@/components/catalog/CatalogIntro";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { listProducts } from "@/lib/data/catalog";
 import { pageMetadata } from "@/lib/seo";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 export const metadata: Metadata = pageMetadata({
   title: "Catalog",
@@ -16,16 +17,18 @@ export default async function CatalogPage() {
 
   if (products.length === 0) {
     return (
-      <EmptyState title="The collection is being photographed">
-        <p>New pieces will be here shortly.</p>
-      </EmptyState>
+      <PageTransition>
+        <EmptyState title="The collection is being photographed">
+          <p>New pieces will be here shortly.</p>
+        </EmptyState>
+      </PageTransition>
     );
   }
 
   return (
-    <>
+    <PageTransition>
       <CatalogIntro count={products.length} />
       <CatalogGrid products={products} />
-    </>
+    </PageTransition>
   );
 }

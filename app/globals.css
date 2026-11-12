@@ -239,6 +239,80 @@ dialog.sheet[open] {
   }
 }
 
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* A small lift into place: opacity with a few pixels of travel, never more. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* ── Page transitions (React <ViewTransition>, see PageTransition.tsx) ── */
+
+/* Clicks pass through to the new page while it settles. */
+::view-transition {
+  pointer-events: none;
+}
+
+/* The old page steps back quickly so it never competes with the new one. */
+::view-transition-old(.page-exit) {
+  animation: 240ms var(--ease-out) both fade-out;
+}
+/* Leaving the home film is a slower dissolve. */
+::view-transition-old(.home-exit) {
+  animation: 500ms var(--ease-out) both fade-out;
+}
+/* The new page waits for it, then settles in. */
+::view-transition-new(.page-enter) {
+  animation: 700ms var(--ease-out) 160ms both rise-in;
+}
+
+/* The header is the fixed point: it does not fade or move. */
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+/* Fades rather than vanishing, so an open mobile menu dissolves into the new page. */
+::view-transition-old(site-header) {
+  animation: 300ms var(--ease-out) both fade-out;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* A piece's photo glides from the catalog into its page (and back). */
+::view-transition-group(.morph) {
+  animation-duration: 700ms;
+  animation-timing-function: var(--ease-out);
+  z-index: 50;
+}
+::view-transition-old(.morph),
+::view-transition-new(.morph) {
+  animation-duration: 700ms;
+  animation-timing-function: var(--ease-out);
+}
+
+/* ── Scroll reveal ──
+   Content drifts up as it enters the viewport, driven by scroll alone (no script).
+   Anything already on screen at load is untouched; browsers without support show it plainly. */
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: rise-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 180px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
@@ -247,5 +321,16 @@ dialog.sheet[open] {
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .reveal {
+    animation: none !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }

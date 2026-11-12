@@ -21,7 +21,7 @@ export function PhilosophySplit({ content, image }: { content: ProsePageContent;
 
           <div className="mt-14 flex max-w-[34rem] flex-col gap-14 lg:mt-20 lg:gap-16">
             {content.sections.map((section, i) => (
-              <section key={section.title ?? i} className="flex flex-col gap-5">
+              <section key={section.title ?? i} className="reveal flex flex-col gap-5">
                 {section.title && <h2 className="label text-secondary">{section.title}</h2>}
                 {section.blocks.map((block, j) => {
                   if (block.kind === "lead")

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { MenuIcon } from "@/components/ui/MenuIcon";
 import { useInquiryCount } from "@/lib/inquiry/store";
@@ -19,6 +19,10 @@ export function HomeMenu() {
     setOpen(false);
     button.current?.focus();
   }, []);
+
+  // Next keeps a page mounted (hidden) after you leave it; close the menu then,
+  // so coming back home never finds it still open.
+  useLayoutEffect(() => () => setOpen(false), []);
 
   return (
     <div className="lg:hidden">
@@ -44,9 +48,9 @@ export function HomeMenu() {
           onClick={() => setOpen(true)}
           aria-expanded={open}
           aria-controls="mobile-menu"
-          aria-label="Menu"
-          className="-mr-3 inline-flex min-h-11 min-w-11 items-center justify-center px-3 text-on-inverted"
+          className="label -mr-3 inline-flex min-h-11 min-w-11 items-center justify-center gap-2.5 px-3 text-on-inverted"
         >
+          Menu
           <MenuIcon />
         </button>
       </div>

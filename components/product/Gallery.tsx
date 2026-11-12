@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useState, ViewTransition } from "react";
 import { Photo } from "@/components/ui/Photo";
 import type { ImageAsset } from "@/lib/types";
 
@@ -9,6 +9,8 @@ type Props = {
   images: ImageAsset[];
   /** Changes when the colorway changes; the gallery crossfades to the new set. */
   colorKey: string;
+  /** Shared with the catalog card, so the photo glides in from the grid. First photo only. */
+  morphName?: string;
   onOpen: (index: number) => void;
 };
 
@@ -16,7 +18,7 @@ type Props = {
  * Mobile: a full-width swipeable row with dots. Desktop: a vertical stack beside the details.
  * Same elements in both, so nothing loads twice. Photos keep their true aspect ratio.
  */
-export function Gallery({ images, colorKey, onOpen }: Props) {
+export function Gallery({ images, colorKey, morphName, onOpen }: Props) {
   return (
     <div className="grid">
       <AnimatePresence initial={false}>
@@ -28,14 +30,22 @@ export function Gallery({ images, colorKey, onOpen }: Props) {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          <Track images={images} onOpen={onOpen} />
+          <Track images={images} morphName={morphName} onOpen={onOpen} />
         </motion.div>
       </AnimatePresence>
     </div>
   );
 }
 
-function Track({ images, onOpen }: { images: ImageAsset[]; onOpen: (i: number) => void }) {
+function Track({
+  images,
+  morphName,
+  onOpen,
+}: {
+  images: ImageAsset[];
+  morphName?: string;
+  onOpen: (i: number) => void;
+}) {
   const [active, setActive] = useState(0);
 
   return (
@@ -56,11 +66,9 @@ function Track({ images, onOpen }: { images: ImageAsset[]; onOpen: (i: number) =
               aria-label={`View ${image.alt} full screen`}
               className="block w-full cursor-zoom-in"
             >
-              <Photo
-                image={image}
-                lcp={i === 0}
-                sizes="(min-width: 1024px) 58vw, 100vw"
-              />
+              <ViewTransition name={i === 0 ? morphName : undefined} share="morph" default="none">
+                <Photo image={image} lcp={i === 0} sizes="(min-width: 1024px) 58vw, 100vw" />
+              </ViewTransition>
             </button>
           </li>
         ))}
