@@ -8,6 +8,7 @@ import { Lightbox } from "@/components/product/Lightbox";
 import { pieceTransitionName } from "@/components/layout/PageTransition";
 import { SizeGuideDialog } from "@/components/product/SizeGuideDialog";
 import { SizeSelector } from "@/components/product/SizeSelector";
+import { getChosenColorway, setChosenColorway } from "@/lib/colorway-choice";
 import { addToInquiry } from "@/lib/inquiry/store";
 import type { Product, SizeGuide } from "@/lib/types";
 
@@ -20,7 +21,9 @@ type Props = {
 
 /** The interactive top of a piece page: gallery, colorway, size and "Add to inquiry". */
 export function ProductView({ product, sizeGuide, children }: Props) {
-  const [colorwayId, setColorwayId] = useState(product.colorways[0].id);
+  // Opens on the colorway chosen on the catalog card, if any; that photo is the one that morphs in.
+  const [initialColorwayId] = useState(() => getChosenColorway(product.slug, product.colorways));
+  const [colorwayId, setColorwayId] = useState(initialColorwayId);
   const [size, setSize] = useState<string | null>(null);
   const [sizeMissing, setSizeMissing] = useState(false);
   const [lightboxAt, setLightboxAt] = useState<number | null>(null);
@@ -60,7 +63,7 @@ export function ProductView({ product, sizeGuide, children }: Props) {
           <Gallery
             images={colorway.images}
             colorKey={colorway.id}
-            morphName={colorway.id === product.colorways[0].id ? pieceTransitionName(product.slug) : undefined}
+            morphName={colorway.id === initialColorwayId ? pieceTransitionName(product.slug) : undefined}
             onOpen={setLightboxAt}
           />
         </div>
@@ -77,7 +80,10 @@ export function ProductView({ product, sizeGuide, children }: Props) {
               name={`${product.slug}-colorway`}
               colorways={product.colorways}
               value={colorway.id}
-              onChange={setColorwayId}
+              onChange={(id) => {
+                setColorwayId(id);
+                setChosenColorway(product.slug, id);
+              }}
             />
 
             <SizeSelector

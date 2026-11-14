@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
+    // 75 is the default; the home hero uses 80 and the full-screen lightbox 90.
+    qualities: [75, 80, 90],
   },
   async redirects() {
     return [

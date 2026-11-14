@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "placeholders": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/generate-placeholders.mts",
+    "photos": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/process-photos.mts",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {

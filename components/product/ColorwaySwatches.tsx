@@ -10,7 +10,7 @@ type Props = {
   name: string;
 };
 
-/** Colorways as small photographs. Native radios underneath, so keyboard and screen readers just work. */
+/** Colorways as small color chips. Native radios underneath, so keyboard and screen readers just work. */
 export function ColorwaySwatches({ colorways, value, onChange, name }: Props) {
   const selected = colorways.find((c) => c.id === value);
   return (
@@ -45,7 +45,7 @@ export function ColorwaySwatches({ colorways, value, onChange, name }: Props) {
                   sizes="48px"
                   placeholder="blur"
                   blurDataURL={c.swatch.blurDataURL}
-                  className="block h-auto w-full"
+                  className="block h-auto w-full border border-line"
                 />
               </span>
               <span className={`text-[10px] tracking-[0.16em] uppercase ${checked ? "text-ink" : "text-secondary"}`}>

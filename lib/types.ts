@@ -23,7 +23,7 @@ export type Colorway = {
   /** URL-safe id, e.g. "bone". Stored in inquiries. */
   id: string;
   name: string;
-  /** Small photographic swatch (not a flat color chip). */
+  /** Small flat color chip, sampled from the cloth in the photos. */
   swatch: ImageAsset;
   /** Gallery photos for this colorway, in order. The first is the hero. */
   images: ImageAsset[];

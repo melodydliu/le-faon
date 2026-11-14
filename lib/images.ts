@@ -2,21 +2,19 @@
  * ─────────────────────────────────────────────────────────────────────────────
  *  Every image and media path on the site lives in this file.
  *
- *  To use real photography, replace a `ph(...)` call with `photo(...)`:
+ *  Product photos live in /public/products/<Product>/. Refer to them by that path,
+ *  e.g. shot("Midi/DSCF0267-2.jpg", "Midi in Ivory, front"). Their true size and
+ *  blur preview come from lib/photo-manifest.ts, so after adding or replacing photos
+ *  run `npm run photos` to refresh it (and to re-crop the colorway swatches, which
+ *  are defined in scripts/process-photos.mts).
  *
- *    ph("silk-slip-dress", "bone", "front")
- *      →  photo("/products/silk-slip-dress/bone-1.jpg", "Silk Slip Dress in Bone, front", 1600, 2000)
- *
- *  Put the files in /public/products/... (or use a full https URL from an allowed host).
- *  Width and height must be the photo's real pixel size: the site never crops garments,
- *  so it uses them to keep the true aspect ratio.
- *
- *  Placeholders are tonal SVGs in /public/placeholders, generated from this file by
- *  `npm run placeholders`. They state what they stand for.
+ *  Colorway names are provisional until the final names are chosen. The `id` is
+ *  stored with each inquiry, so rename `name` freely but keep `id` stable once live.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import type { ImageAsset } from "./types";
+import { photoManifest } from "./photo-manifest";
+import type { Colorway, ImageAsset } from "./types";
 
 /* ── Brand and home ───────────────────────────────────────────────────────── */
 
@@ -34,299 +32,174 @@ export const homeMedia = {
   poster: "/media/hero-poster.jpg",
 } as const;
 
-/* ── Placeholder system ───────────────────────────────────────────────────── */
+/* ── Helpers ──────────────────────────────────────────────────────────────── */
 
-/** Natural colorway tones. Used to tint placeholders and blur previews. */
-export const colorwayTones: Record<string, string> = {
-  bone: "#e9e1d4",
-  oat: "#d6c7ae",
-  sand: "#c9b597",
-  moss: "#7b7d61",
-  clay: "#a5806a",
-  ink: "#3b3832",
-};
-
-/** Rough garment shape drawn in the placeholder, so layouts read like a lookbook. */
-export type Silhouette = "dress" | "slip" | "top" | "knit" | "pants" | "detail" | "swatch";
-
-export type PlaceholderSpec = ImageAsset & {
-  placeholder: { tone: string; label: string; silhouette: Silhouette };
-};
-
-const productNames: Record<string, { name: string; silhouette: Silhouette }> = {
-  cardigan: { name: "Cardigan", silhouette: "knit" },
-  "silk-slip-dress": { name: "Silk Slip Dress", silhouette: "slip" },
-  pants: { name: "Pants", silhouette: "pants" },
-  "sun-dress": { name: "Sun Dress", silhouette: "dress" },
-  blouse: { name: "Blouse", silhouette: "top" },
-  "wool-sweater": { name: "Wool Sweater", silhouette: "knit" },
-};
-
-const PORTRAIT = { width: 1600, height: 2000 }; // 4:5
-const SWATCH = { width: 480, height: 600 }; // 4:5
-const LANDSCAPE = { width: 2000, height: 1400 };
-
-function title(id: string) {
-  return id.charAt(0).toUpperCase() + id.slice(1);
+/** A photo from /public/products, by its path inside that folder. */
+export function shot(path: string, alt: string): ImageAsset {
+  const meta = photoManifest[path];
+  if (!meta) throw new Error(`Photo not in manifest: ${path}. Run \`npm run photos\`.`);
+  return { src: `/products/${path}`, alt, width: meta.width, height: meta.height, blurDataURL: meta.blur };
 }
 
-/** A solid-tone blur preview. Real photos can pass their own via `photo(..., blur)`. */
-export function toneBlur(hex: string) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="4" height="5"><rect width="4" height="5" fill="${hex}"/></svg>`;
-  return `data:image/svg+xml;base64,${typeof btoa === "function" ? btoa(svg) : Buffer.from(svg).toString("base64")}`;
-}
+type View = [file: string, view: string];
 
-/** A real photograph. */
-export function photo(src: string, alt: string, width: number, height: number, blurDataURL?: string): ImageAsset {
-  return { src, alt, width, height, blurDataURL: blurDataURL ?? toneBlur(colorwayTones.bone) };
-}
-
-/* ── Sample photography (temporary) ──────────────────────────────────────────
- *  Real photos from another label, used only so the layouts can be judged with
- *  photography. NOT for a public deployment: set USE_SAMPLE_PHOTOS to false (or
- *  replace them with Le Faon's own) and delete /public/products/sample.
- *  Colorway swatches stay tonal so colorways remain distinguishable.
- * ───────────────────────────────────────────────────────────────────────── */
-
-export const USE_SAMPLE_PHOTOS = true;
-
-const SAMPLE_SIZE = { width: 1800, height: 2459 };
-
-const sampleBlur: Record<string, string> = {
-  "camisole-back": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QDURXhpZgAATU0AKgAAAAgABwESAAMAAAABAAEAAAEaAAUAAAABAAAAYgEbAAUAAAABAAAAagEoAAMAAAABAAIAAAFCAAQAAAABAAAHCAFDAAQAAAABAAAJm4dpAAQAAAABAAAAcgAAAAAAAABIAAAAAQAAAEgAAAABAAeQAAAHAAAABDAyMjGRAQAHAAAABAECAwCgAAAHAAAABDAxMDCgAQADAAAAAQABAACgAgAEAAAAAQAAAAugAwAEAAAAAQAAABCkBgADAAAAAQAAAAAAAAAA/8AAEQgAEAALAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMABgYGBgYGCgYGCg4KCgoOEg4ODg4SFxISEhISFxwXFxcXFxccHBwcHBwcHCIiIiIiIicnJycnLCwsLCwsLCwsLP/bAEMBBwcHCwoLEwoKEy4fGh8uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLv/dAAQAAf/aAAwDAQACEQMRAD8A9w157lJ7WaAyBUf5gh+VgeMOO4rVRgVB9ajvEdkGFLfSmKHAAxUrdg3of//Z",
-  "camisole-front": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QDURXhpZgAATU0AKgAAAAgABwESAAMAAAABAAEAAAEaAAUAAAABAAAAYgEbAAUAAAABAAAAagEoAAMAAAABAAIAAAFCAAQAAAABAAAHCAFDAAQAAAABAAAJm4dpAAQAAAABAAAAcgAAAAAAAABIAAAAAQAAAEgAAAABAAeQAAAHAAAABDAyMjGRAQAHAAAABAECAwCgAAAHAAAABDAxMDCgAQADAAAAAQABAACgAgAEAAAAAQAAAAugAwAEAAAAAQAAABCkBgADAAAAAQAAAAAAAAAA/8AAEQgAEAALAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMABgYGBgYGCgYGCg4KCgoOEg4ODg4SFxISEhISFxwXFxcXFxccHBwcHBwcHCIiIiIiIicnJycnLCwsLCwsLCwsLP/bAEMBBwcHCwoLEwoKEy4fGh8uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLv/dAAQAAf/aAAwDAQACEQMRAD8A9Y8VTX0d9ay2lz5SW58ySPcQJATjBwOfpXSJIHQOD1Gapatp1pfNvmLBtuPlPYc+lSQELEq+grON+Z3Klaysf//Z",
-  "cardigan-front": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QDURXhpZgAATU0AKgAAAAgABwESAAMAAAABAAEAAAEaAAUAAAABAAAAYgEbAAUAAAABAAAAagEoAAMAAAABAAIAAAFCAAQAAAABAAAHCAFDAAQAAAABAAAJm4dpAAQAAAABAAAAcgAAAAAAAABIAAAAAQAAAEgAAAABAAeQAAAHAAAABDAyMjGRAQAHAAAABAECAwCgAAAHAAAABDAxMDCgAQADAAAAAQABAACgAgAEAAAAAQAAAAugAwAEAAAAAQAAABCkBgADAAAAAQAAAAAAAAAA/8AAEQgAEAALAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMABgYGBgYGCgYGCg4KCgoOEg4ODg4SFxISEhISFxwXFxcXFxccHBwcHBwcHCIiIiIiIicnJycnLCwsLCwsLCwsLP/bAEMBBwcHCwoLEwoKEy4fGh8uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLv/dAAQAAf/aAAwDAQACEQMRAD8A9R8V6w1pqNtHFN5fkne4yRuz244PHrxXUxypNGsqHIYAj8a8N+KOrHTfE9pCF/dTR75CByeSor1qxcrZxKeyis43UncuVnFWP//Z",
-  "slip-detail": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QDURXhpZgAATU0AKgAAAAgABwESAAMAAAABAAEAAAEaAAUAAAABAAAAYgEbAAUAAAABAAAAagEoAAMAAAABAAIAAAFCAAQAAAABAAAHCAFDAAQAAAABAAAJm4dpAAQAAAABAAAAcgAAAAAAAABIAAAAAQAAAEgAAAABAAeQAAAHAAAABDAyMjGRAQAHAAAABAECAwCgAAAHAAAABDAxMDCgAQADAAAAAQABAACgAgAEAAAAAQAAAAugAwAEAAAAAQAAABCkBgADAAAAAQAAAAAAAAAA/8AAEQgAEAALAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMABgYGBgYGCgYGCg4KCgoOEg4ODg4SFxISEhISFxwXFxcXFxccHBwcHBwcHCIiIiIiIicnJycnLCwsLCwsLCwsLP/bAEMBBwcHCwoLEwoKEy4fGh8uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLv/dAAQAAf/aAAwDAQACEQMRAD8Aj1ifRNc1a/vNXlIk8gRpGTgBAT0A681qaJr8thpNtZlmPlIFG4c47fpXnviE+Xrl1p2ELRBY8jkHb9fWvTNMvri7sIbiC1h2Moxufnjj+lcHI+7udiqJuzSsf//Z",
-  "slip-front": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QDURXhpZgAATU0AKgAAAAgABwESAAMAAAABAAEAAAEaAAUAAAABAAAAYgEbAAUAAAABAAAAagEoAAMAAAABAAIAAAFCAAQAAAABAAAHCAFDAAQAAAABAAAJm4dpAAQAAAABAAAAcgAAAAAAAABIAAAAAQAAAEgAAAABAAeQAAAHAAAABDAyMjGRAQAHAAAABAECAwCgAAAHAAAABDAxMDCgAQADAAAAAQABAACgAgAEAAAAAQAAAAugAwAEAAAAAQAAABCkBgADAAAAAQAAAAAAAAAA/8AAEQgAEAALAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMABgYGBgYGCgYGCg4KCgoOEg4ODg4SFxISEhISFxwXFxcXFxccHBwcHBwcHCIiIiIiIicnJycnLCwsLCwsLCwsLP/bAEMBBwcHCwoLEwoKEy4fGh8uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLv/dAAQAAf/aAAwDAQACEQMRAD8A9K8careafeWTWtyIFiJkdSxUSDONpABz9K7GKZZo1mQ5VwCPxrxn4l3XmeIrOyLceUrY9y9eu2wSO3jjjGFVQAKyje7uXK1lY//Z",
-  "slip-side": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QDURXhpZgAATU0AKgAAAAgABwESAAMAAAABAAEAAAEaAAUAAAABAAAAYgEbAAUAAAABAAAAagEoAAMAAAABAAIAAAFCAAQAAAABAAAHCAFDAAQAAAABAAAJm4dpAAQAAAABAAAAcgAAAAAAAABIAAAAAQAAAEgAAAABAAeQAAAHAAAABDAyMjGRAQAHAAAABAECAwCgAAAHAAAABDAxMDCgAQADAAAAAQABAACgAgAEAAAAAQAAAAugAwAEAAAAAQAAABCkBgADAAAAAQAAAAAAAAAA/8AAEQgAEAALAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMABgYGBgYGCgYGCg4KCgoOEg4ODg4SFxISEhISFxwXFxcXFxccHBwcHBwcHCIiIiIiIicnJycnLCwsLCwsLCwsLP/bAEMBBwcHCwoLEwoKEy4fGh8uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLv/dAAQAAf/aAAwDAQACEQMRAD8A9j8ZXs9ta2v2V3jle5jVSrbQeeQ3qCO1dHGdyBj3FcJ4y03VNRvtMayVmjgm3yYxge5yR/I12Cu4UDFStwP/2Q==",
-};
-
-type SampleShot = { file: string; view: string };
-
-/** Which sample shots stand in for each piece (repeats are fine). */
-const sampleShots: Record<string, SampleShot[]> = {
-  "silk-slip-dress": [
-    { file: "slip-front", view: "front" },
-    { file: "slip-side", view: "side" },
-    { file: "slip-detail", view: "detail" },
-  ],
-  "sun-dress": [
-    { file: "slip-side", view: "side" },
-    { file: "slip-front", view: "front" },
-    { file: "slip-detail", view: "detail" },
-  ],
-  blouse: [
-    { file: "camisole-front", view: "front" },
-    { file: "camisole-back", view: "back" },
-  ],
-  pants: [
-    { file: "camisole-back", view: "back" },
-    { file: "camisole-front", view: "front" },
-  ],
-  cardigan: [
-    { file: "cardigan-front", view: "front" },
-    { file: "slip-detail", view: "detail" },
-  ],
-  "wool-sweater": [
-    { file: "cardigan-front", view: "front" },
-    { file: "camisole-front", view: "front" },
-  ],
-};
-
-function sample(file: string, alt: string): ImageAsset {
-  return photo(`/products/sample/${file}.jpg`, alt, SAMPLE_SIZE.width, SAMPLE_SIZE.height, sampleBlur[file]);
-}
-
-function sampleGallery(slug: string, colorway: string): ImageAsset[] | null {
-  const shots = USE_SAMPLE_PHOTOS ? sampleShots[slug] : undefined;
-  if (!shots) return null;
-  const { name } = productNames[slug];
-  return shots.map((s) => sample(s.file, `${name} in ${title(colorway)}, ${s.view}`));
-}
-
-function sampleEditorial(slug: string, n: number, subject: string): ImageAsset | null {
-  const shots = USE_SAMPLE_PHOTOS ? sampleShots[slug] : undefined;
-  if (!shots) return null;
-  // Editorial images may be cropped: prefer the close-up, then the last view.
-  const shot = n === 1 ? (shots.find((s) => s.view === "detail") ?? shots[shots.length - 1]) : shots[0];
-  return sample(shot.file, `${productNames[slug].name}: ${subject}`);
-}
-
-/** Product placeholder: a portrait view of one colorway, e.g. ph("pants", "clay", "back"). */
-function ph(slug: string, colorway: string, view: "front" | "side" | "back" | "detail"): PlaceholderSpec {
-  const { name, silhouette } = productNames[slug];
-  const tone = colorwayTones[colorway];
+/** One colorway: its swatch (swatches/<slug>-<id>.png, a flat color chip) and gallery. The first photo is the hero. */
+function colorway(product: string, slug: string, id: string, name: string, folder: string, views: View[]): Colorway {
   return {
-    src: `/placeholders/${slug}/${colorway}-${view}.svg`,
-    alt: `${name} in ${title(colorway)}, ${view}`,
-    ...PORTRAIT,
-    blurDataURL: toneBlur(tone),
-    placeholder: {
-      tone,
-      label: `${name} — ${title(colorway)} — ${view}`,
-      silhouette: view === "detail" ? "detail" : silhouette,
-    },
-  };
-}
-
-/** Colorway swatch placeholder: a small close-up of the cloth. */
-function sw(slug: string, colorway: string): PlaceholderSpec {
-  const { name } = productNames[slug];
-  const tone = colorwayTones[colorway];
-  return {
-    src: `/placeholders/${slug}/${colorway}-swatch.svg`,
-    alt: `${title(colorway)}`,
-    ...SWATCH,
-    blurDataURL: toneBlur(tone),
-    placeholder: { tone, label: `${name} — ${title(colorway)}`, silhouette: "swatch" },
-  };
-}
-
-/** Editorial detail image below the fold. These may be cropped, so any ratio works. */
-function ed(slug: string, n: number, colorway: string, ratio: "portrait" | "landscape", subject: string): ImageAsset {
-  const real = sampleEditorial(slug, n, subject);
-  if (real) return real;
-  const { name } = productNames[slug];
-  const tone = colorwayTones[colorway];
-  const spec: PlaceholderSpec = {
-    src: `/placeholders/${slug}/editorial-${n}.svg`,
-    alt: `${name}: ${subject}`,
-    ...(ratio === "portrait" ? PORTRAIT : LANDSCAPE),
-    blurDataURL: toneBlur(tone),
-    placeholder: { tone, label: `${name} — editorial — ${subject}`, silhouette: "detail" },
-  };
-  return spec;
-}
-
-/** Full gallery for one colorway. */
-function gallery(slug: string, colorway: string): { swatch: ImageAsset; images: ImageAsset[] } {
-  return {
-    swatch: sw(slug, colorway),
-    images: sampleGallery(slug, colorway) ?? [
-      ph(slug, colorway, "front"),
-      ph(slug, colorway, "side"),
-      ph(slug, colorway, "back"),
-      ph(slug, colorway, "detail"),
-    ],
+    id,
+    name,
+    swatch: shot(`swatches/${slug}-${id}.png`, name),
+    images: views.map(([file, view]) => shot(`${folder}/${file}`, `${product} in ${name}, ${view}`)),
   };
 }
 
 /* ── Product photography ──────────────────────────────────────────────────── */
 
 type ProductMedia = {
-  colorways: Record<string, { swatch: ImageAsset; images: ImageAsset[] }>;
+  colorways: Colorway[];
+  /** Below-the-fold images. These may be cropped, so any ratio works. */
   editorial: ImageAsset[];
 };
 
-export const productMedia: Record<string, ProductMedia> = {
-  cardigan: {
-    colorways: {
-      bone: gallery("cardigan", "bone"),
-      oat: gallery("cardigan", "oat"),
-      moss: gallery("cardigan", "moss"),
-    },
+export const productMedia = {
+  midi: {
+    colorways: [
+      colorway("Midi", "midi", "ivory", "Ivory", "Midi", [
+        ["DSCF0267-2.jpg", "front"],
+        ["DSCF0311-2.jpg", "back"],
+        ["DSCF0387-2.jpg", "worn with the Duster"],
+        ["DSCF0380-2.jpg", "detail"],
+      ]),
+      colorway("Midi", "midi", "chocolate", "Chocolate", "Midi", [
+        ["DSCF2042.jpg", "front"],
+        ["DSCF2034.jpg", "neckline"],
+      ]),
+      colorway("Midi", "midi", "champagne", "Champagne", "Midi", [
+        ["DSCF1498.jpg", "front"],
+        ["DSCF1726.jpg", "worn with the Duster"],
+        ["DSCF1775.jpg", "back"],
+      ]),
+    ],
     editorial: [
-      ed("cardigan", 1, "bone", "portrait", "shell buttons, close"),
-      ed("cardigan", 2, "bone", "landscape", "worn open, late light"),
+      shot("Midi/DSCF0613.jpg", "Two Midis, Champagne and Ivory, in an orchard at evening"),
+      shot("Midi/DSCF1317.jpg", "The Midi by a window, in black and white"),
     ],
   },
-  "silk-slip-dress": {
-    colorways: {
-      bone: gallery("silk-slip-dress", "bone"),
-      sand: gallery("silk-slip-dress", "sand"),
-      ink: gallery("silk-slip-dress", "ink"),
-    },
-    editorial: [
-      ed("silk-slip-dress", 1, "bone", "portrait", "bias-cut hem in motion"),
-      ed("silk-slip-dress", 2, "sand", "landscape", "silk strap at the shoulder"),
+  duster: {
+    colorways: [
+      colorway("Duster", "duster", "mocha", "Mocha", "Duster", [
+        ["DSCF1775.jpg", "back"],
+        ["DSCF1726.jpg", "front, open"],
+        ["DSCF0418.jpg", "outdoors"],
+      ]),
+      colorway("Duster", "duster", "oatmeal", "Oatmeal", "Duster", [
+        ["DSCF0391-2.jpg", "front"],
+        ["DSCF0414-2.jpg", "full length"],
+        ["DSCF0386-2.jpg", "side"],
+        ["DSCF0486-2.jpg", "tied at the waist"],
+        ["DSCF0505-2.jpg", "back"],
+      ]),
     ],
-  },
-  pants: {
-    colorways: {
-      sand: gallery("pants", "sand"),
-      clay: gallery("pants", "clay"),
-      ink: gallery("pants", "ink"),
-    },
     editorial: [
-      ed("pants", 1, "sand", "portrait", "hemp weave and brass button"),
-      ed("pants", 2, "clay", "landscape", "walking, the leg in movement"),
-    ],
-  },
-  "sun-dress": {
-    colorways: {
-      bone: gallery("sun-dress", "bone"),
-      clay: gallery("sun-dress", "clay"),
-    },
-    editorial: [
-      ed("sun-dress", 1, "bone", "portrait", "gathered bodice, close"),
-      ed("sun-dress", 2, "clay", "landscape", "in a field at evening"),
+      shot("Duster/DSCF0380-2.jpg", "The Duster falling open over silk"),
+      shot("Duster/DSCF0418.jpg", "The Duster on a rope swing, late light"),
     ],
   },
   blouse: {
-    colorways: {
-      bone: gallery("blouse", "bone"),
-      oat: gallery("blouse", "oat"),
-      moss: gallery("blouse", "moss"),
-    },
+    colorways: [
+      colorway("Blouse", "blouse", "champagne", "Champagne", "Blouse", [
+        ["Blouse 10, Pant 10.jpg", "front"],
+        ["Blouse 8, Pant 8.jpg", "full length"],
+      ]),
+      colorway("Blouse", "blouse", "sage", "Sage", "Blouse", [
+        ["DSCF0126.jpg", "front"],
+        ["DSCF0080.jpg", "front"],
+        ["DSCF0067.jpg", "placket and cuff"],
+        ["DSCF0049.jpg", "back"],
+      ]),
+      colorway("Blouse", "blouse", "ivory", "Ivory", "Blouse", [
+        ["DSCF1984.jpg", "front"],
+        ["DSCF1046-2.jpg", "front"],
+        ["DSCF1055-2.jpg", "buttoning"],
+        ["DSCF1131-2.jpg", "tucked in"],
+        ["DSCF1833.jpg", "full length"],
+      ]),
+    ],
     editorial: [
-      ed("blouse", 1, "bone", "portrait", "the soft collar"),
-      ed("blouse", 2, "oat", "landscape", "a sleeve in window light"),
+      shot("Blouse/DSCF0067.jpg", "The Blouse's long cuff and hidden placket"),
+      shot("Blouse/DSCF1861.jpg", "The Blouse, worn loose"),
     ],
   },
-  "wool-sweater": {
-    colorways: {
-      oat: gallery("wool-sweater", "oat"),
-      moss: gallery("wool-sweater", "moss"),
-      clay: gallery("wool-sweater", "clay"),
-      ink: gallery("wool-sweater", "ink"),
-    },
+  pants: {
+    colorways: [
+      colorway("Pants", "pants", "olive", "Olive", "Pants", [
+        ["Pant 7, Blouse.jpg", "front"],
+        ["Pant 8, Blouse.jpg", "front"],
+        ["Pant 6.jpg", "back"],
+        ["Pant 3.jpg", "back"],
+        ["Pant.jpg", "waistband and button"],
+      ]),
+    ],
     editorial: [
-      ed("wool-sweater", 1, "oat", "portrait", "the rib at the cuff"),
-      ed("wool-sweater", 2, "moss", "landscape", "folded on linen"),
+      shot("Pants/Pant.jpg", "The Pants on a washing line, the fawn button in the sun"),
+      shot("Pants/Pant 5.jpg", "The Pants from behind, arms open"),
     ],
   },
-};
+  cardigan: {
+    colorways: [
+      colorway("Cardigan", "cardigan", "powder-blue", "Powder Blue", "Cardigan", [
+        ["DSCF0911-2.jpg", "full length"],
+        ["DSCF0959-2.jpg", "buttoning"],
+        ["DSCF0963-2.jpg", "worn open"],
+        ["DSCF1003-2.jpg", "sleeve"],
+      ]),
+      colorway("Cardigan", "cardigan", "oatmeal", "Oatmeal", "Cardigan", [
+        ["DSCF0067-2.jpg", "front"],
+        ["DSCF0041-2.jpg", "front"],
+        ["DSCF2157.jpg", "worn with the Blouse and Pants"],
+      ]),
+      colorway("Cardigan", "cardigan", "butter", "Butter", "Cardigan", [
+        ["DSCF1375.jpg", "full length"],
+        ["DSCF1374.jpg", "buttoning"],
+      ]),
+    ],
+    editorial: [
+      shot("Cardigan/DSCF0842.jpg", "The Cardigan drying on a line outdoors"),
+      shot("Cardigan/DSCF2204.jpg", "The Cardigan in the studio, worn with the collection"),
+    ],
+  },
+  sundress: {
+    colorways: [
+      colorway("Sundress", "sundress", "black", "Black", "Sundress", [
+        ["DSCF0758-2.jpg", "front"],
+        ["DSCF0730-2.jpg", "side"],
+        ["DSCF0761-2.jpg", "front"],
+        ["DSCF0827-2.jpg", "full length"],
+      ]),
+      colorway("Sundress", "sundress", "ivory", "Ivory", "Sundress", [
+        ["DSCF1197-2.jpg", "front"],
+        ["DSCF1200-2.jpg", "front"],
+        ["DSCF1247-2.jpg", "bodice and tie"],
+        ["DSCF1314-2.jpg", "back"],
+        ["DSCF1299-2.jpg", "ruffled strap"],
+      ]),
+    ],
+    editorial: [
+      shot("Sundress/DSCF0869-2.jpg", "The Sundress turning, in black and white"),
+      shot("Sundress/DSCF0855-2.jpg", "The flounce hem in motion, in black and white"),
+    ],
+  },
+} satisfies Record<string, ProductMedia>;
 
 /* ── Page imagery ─────────────────────────────────────────────────────────── */
 
-function pagePh(file: string, tone: string, label: string, ratio: "portrait" | "landscape" | "wide"): PlaceholderSpec {
-  const size = ratio === "portrait" ? PORTRAIT : ratio === "landscape" ? LANDSCAPE : { width: 2400, height: 1000 };
-  return {
-    src: `/placeholders/pages/${file}.svg`,
-    alt: label,
-    ...size,
-    blurDataURL: toneBlur(tone),
-    placeholder: { tone, label, silhouette: "detail" },
-  };
-}
-
 export const pageMedia = {
   /** Philosophy: the photograph that holds the left half of the page. */
-  philosophyImage: USE_SAMPLE_PHOTOS
-    ? sample("cardigan-front", "Wool, worn open")
-    : pagePh("philosophy", colorwayTones.oat, "Philosophy — portrait — linen in afternoon light", "portrait"),
+  philosophyImage: shot("Duster/DSCF0418.jpg", "The Duster in Mocha, on a rope swing under trees"),
   /** How to Order: the photograph beside the steps. */
-  howToOrderImage: USE_SAMPLE_PHOTOS
-    ? sample("camisole-back", "A garment, from behind")
-    : pagePh("how-to-order", colorwayTones.bone, "How to Order — portrait — soft light", "portrait"),
+  howToOrderImage: shot("Cardigan/DSCF0842.jpg", "A cardigan drying on a line"),
   /** Contact page image. */
-  contact: USE_SAMPLE_PHOTOS
-    ? sample("slip-side", "Silk, in profile")
-    : pagePh("contact", colorwayTones.sand, "Contact — portrait — quiet interior", "portrait"),
+  contact: shot("Midi/DSCF0626.jpg", "The Midi in Ivory under a knit duster, holding a pear"),
   /** Still shown on home if the hero video or poster is missing. */
-  homeFallback: pagePh("home-fallback", colorwayTones.moss, "Home — still — golden hour", "landscape"),
+  homeFallback: shot("Midi/DSCF0613.jpg", "Two women in the Midi, in an orchard at golden hour"),
 } satisfies Record<string, ImageAsset>;
-
-/* ── For the placeholder generator ───────────────────────────────────────── */
-
-/** Every placeholder image referenced above. Used by scripts/generate-placeholders.ts. */
-export function allPlaceholderSpecs(): PlaceholderSpec[] {
-  const all: ImageAsset[] = [
-    ...Object.values(pageMedia),
-    ...Object.values(productMedia).flatMap((p) => [
-      ...p.editorial,
-      ...Object.values(p.colorways).flatMap((c) => [c.swatch, ...c.images]),
-    ]),
-  ];
-  return all.filter((a): a is PlaceholderSpec => "placeholder" in a);
-}
