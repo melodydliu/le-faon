@@ -1,6 +1,6 @@
 /**
- * Reads every photo in /public/products/<Product>/ and /public/media/general/ and writes
- * lib/photo-manifest.ts (true pixel size + a tiny blurred preview for each), and makes a flat color chip
+ * Reads every photo in /public/products/<Product>/ and /public/media/general/, shrinks any that are
+ * larger than the site ever needs (in place), and writes lib/photo-manifest.ts (true pixel size + a tiny blurred preview for each), and makes a flat color chip
  * for each colorway (sampled from a crop of its cloth) in /public/products/swatches/.
  *
  * Run after adding, removing or replacing photos:  npm run photos
@@ -66,6 +66,37 @@ async function clothColor(region: sharp.Sharp) {
   const [r, g, b] = [0, 1, 2].map((c) => Math.round(near.reduce((sum, p) => sum + p[c], 0) / near.length));
   return { r, g, b };
 }
+
+// 0. Shrink: straight-off-camera files (~25 MP, ~2 MB) make every first, uncached request slow,
+//    because Next's image optimizer has to decode the whole file to make each size. 3200px on the
+//    long edge still covers the lightbox at 2x zoom. Photos already within bounds are left alone.
+const MAX_EDGE = 3200;
+const JPEG_QUALITY = 84;
+
+function walkPhotos(dir: string): string[] {
+  return readdirSync(dir).flatMap((name) => {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) return name === "swatches" ? [] : walkPhotos(full);
+    return /\.jpe?g$/i.test(name) ? [full] : [];
+  });
+}
+
+let shrunk = 0;
+let saved = 0;
+for (const file of [...walkPhotos(productsDir), ...walkPhotos(generalDir)]) {
+  const { width, height } = await orientedSize(file);
+  if (Math.max(width, height) <= MAX_EDGE) continue;
+  const before = statSync(file).size;
+  const buf = await sharp(file)
+    .rotate()
+    .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: "inside" })
+    .jpeg({ quality: JPEG_QUALITY, mozjpeg: true })
+    .toBuffer();
+  writeFileSync(file, buf);
+  shrunk++;
+  saved += before - buf.length;
+}
+if (shrunk) console.log(`Shrank ${shrunk} photos, saved ${(saved / 1e6).toFixed(0)} MB`);
 
 // 1. Swatches: a flat chip of each colorway's cloth color.
 //    (Cleared first so renamed or removed colorways leave nothing behind.)
