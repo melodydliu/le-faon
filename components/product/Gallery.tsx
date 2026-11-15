@@ -1,36 +1,53 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useState, ViewTransition } from "react";
+import { ViewTransition, useState } from "react";
 import { Photo } from "@/components/ui/Photo";
+import { crossfadeLayer, preloadPhoto, useSettledSwap } from "@/lib/photo-swap";
 import type { ImageAsset } from "@/lib/types";
+
+/** The gallery photos' `sizes`. Shared with preloading so the browser picks the same file it will render. */
+const GALLERY_SIZES = "(min-width: 1024px) 58vw, 100vw";
+
+/** Starts loading a gallery photo at the size the gallery will request. */
+export function preloadGalleryPhoto(image: ImageAsset) {
+  return preloadPhoto(image, GALLERY_SIZES);
+}
 
 type Props = {
   images: ImageAsset[];
   /** Changes when the colorway changes; the gallery crossfades to the new set. */
   colorKey: string;
-  /** Shared with the catalog card, so the photo glides in from the grid. First photo only. */
+  /** Shared with the catalog card, so the photo glides in from the grid. */
   morphName?: string;
+  /** The colorway whose first photo carries `morphName`. */
+  morphKey?: string;
   onOpen: (index: number) => void;
 };
 
 /**
  * Mobile: a full-width swipeable row with dots. Desktop: a vertical stack beside the details.
  * Same elements in both, so nothing loads twice. Photos keep their true aspect ratio.
+ *
+ * On a colorway change the current photos stay put until the new first photo has decoded,
+ * then the new set fades in over them, so the change never flashes a blur or the background.
  */
-export function Gallery({ images, colorKey, morphName, onOpen }: Props) {
+export function Gallery({ images, colorKey, morphName, morphKey, onOpen }: Props) {
+  const shown = useSettledSwap(colorKey, images, images[0], GALLERY_SIZES);
+
   return (
     <div className="grid">
       <AnimatePresence initial={false}>
         <motion.div
-          key={colorKey}
+          key={shown.key}
           className="[grid-area:1/1]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          {...crossfadeLayer}
         >
-          <Track images={images} morphName={morphName} onOpen={onOpen} />
+          <Track
+            images={shown.value}
+            morphName={shown.key === morphKey ? morphName : undefined}
+            onOpen={onOpen}
+          />
         </motion.div>
       </AnimatePresence>
     </div>
@@ -67,7 +84,7 @@ function Track({
               className="block w-full cursor-zoom-in"
             >
               <ViewTransition name={i === 0 ? morphName : undefined} share="morph" default="none">
-                <Photo image={image} lcp={i === 0} sizes="(min-width: 1024px) 58vw, 100vw" />
+                <Photo image={image} lcp={i === 0} sizes={GALLERY_SIZES} />
               </ViewTransition>
             </button>
           </li>

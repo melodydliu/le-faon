@@ -3,13 +3,14 @@
 import { useCallback, useRef, useState, type ReactNode } from "react";
 import { AddedSheet, type AddedNotice } from "@/components/product/AddedSheet";
 import { ColorwaySwatches } from "@/components/product/ColorwaySwatches";
-import { Gallery } from "@/components/product/Gallery";
+import { Gallery, preloadGalleryPhoto } from "@/components/product/Gallery";
 import { Lightbox } from "@/components/product/Lightbox";
 import { pieceTransitionName } from "@/components/layout/PageTransition";
 import { SizeGuideDialog } from "@/components/product/SizeGuideDialog";
 import { SizeSelector } from "@/components/product/SizeSelector";
 import { getChosenColorway, setChosenColorway } from "@/lib/colorway-choice";
 import { addToInquiry } from "@/lib/inquiry/store";
+import { useStickyColumn } from "@/lib/use-sticky-column";
 import type { Product, SizeGuide } from "@/lib/types";
 
 type Props = {
@@ -29,6 +30,8 @@ export function ProductView({ product, sizeGuide, children }: Props) {
   const [lightboxAt, setLightboxAt] = useState<number | null>(null);
   const [notice, setNotice] = useState<AddedNotice | null>(null);
   const sizeRow = useRef<HTMLFieldSetElement>(null);
+  const detailsColumn = useRef<HTMLDivElement>(null);
+  useStickyColumn(detailsColumn);
 
   const colorway = product.colorways.find((c) => c.id === colorwayId) ?? product.colorways[0];
   const dismiss = useCallback(() => setNotice(null), []);
@@ -63,13 +66,19 @@ export function ProductView({ product, sizeGuide, children }: Props) {
           <Gallery
             images={colorway.images}
             colorKey={colorway.id}
-            morphName={colorway.id === initialColorwayId ? pieceTransitionName(product.slug) : undefined}
+            morphName={pieceTransitionName(product.slug)}
+            morphKey={initialColorwayId}
             onOpen={setLightboxAt}
           />
         </div>
 
         <div className="px-gutter lg:col-span-5 lg:px-0">
-          <div className="flex flex-col gap-8 lg:sticky lg:top-[calc(var(--header-h)+40px)] lg:max-w-[460px]">
+          {/* Desktop: pinned beside the photos; when taller than the window, it follows the scroll
+              direction so both its top and its end stay reachable (see useStickyColumn). */}
+          <div
+            ref={detailsColumn}
+            className="flex flex-col gap-8 lg:sticky lg:top-[calc(var(--header-h)+40px)] lg:max-w-[460px]"
+          >
             <header className="flex flex-col gap-3">
               <p className="label text-secondary">Made to order</p>
               <h1 className="display-lg">{product.name}</h1>
@@ -80,6 +89,10 @@ export function ProductView({ product, sizeGuide, children }: Props) {
               name={`${product.slug}-colorway`}
               colorways={product.colorways}
               value={colorway.id}
+              onPreview={(id) => {
+                const first = product.colorways.find((c) => c.id === id)?.images[0];
+                if (first) preloadGalleryPhoto(first);
+              }}
               onChange={(id) => {
                 setColorwayId(id);
                 setChosenColorway(product.slug, id);

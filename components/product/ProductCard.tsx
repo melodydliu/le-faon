@@ -1,17 +1,19 @@
 "use client";
 
+import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, ViewTransition } from "react";
 import { pieceTransitionName } from "@/components/layout/PageTransition";
 import { Photo } from "@/components/ui/Photo";
 import { getChosenColorway, setChosenColorway } from "@/lib/colorway-choice";
+import { crossfadeLayer, preloadPhoto, useSettledSwap } from "@/lib/photo-swap";
 import type { Product } from "@/lib/types";
 
 /**
  * A piece in a grid: portrait photo (never cropped), name, material and its colorways.
  * On hover the photo softly crossfades to a second view; nothing moves.
- * Choosing a swatch shows that colorway here, and the piece page opens on it.
+ * Choosing a swatch crossfades to that colorway here (once its photo has loaded), and the piece page opens on it.
  */
 export function ProductCard({
   product,
@@ -30,7 +32,8 @@ export function ProductCard({
 }) {
   const [colorwayId, setColorwayId] = useState(() => getChosenColorway(product.slug, product.colorways));
   const colorway = product.colorways.find((c) => c.id === colorwayId) ?? product.colorways[0];
-  const [first, second] = colorway.images;
+  const shown = useSettledSwap(colorway.id, colorway, colorway.images[0], sizes);
+  const [first, second] = shown.value.images;
   const centered = align === "center";
 
   function choose(id: string) {
@@ -42,17 +45,20 @@ export function ProductCard({
     <div>
       <Link href={`/catalog/${product.slug}`} className="group block">
         <ViewTransition name={morph ? pieceTransitionName(product.slug) : undefined} share="morph" default="none">
-          <div className="relative bg-surface">
-            <Photo key={first.src} image={first} sizes={sizes} lcp={lcp} />
-            {second && (
-              <div
-                key={second.src}
-                aria-hidden="true"
-                className="absolute inset-0 opacity-0 transition-opacity duration-700 ease-[var(--ease-out)] group-hover:opacity-100"
-              >
-                <Photo image={second} sizes={sizes} alt="" />
-              </div>
-            )}
+          <div className="grid bg-surface">
+            <AnimatePresence initial={false}>
+              <motion.div key={shown.key} className="relative [grid-area:1/1]" {...crossfadeLayer}>
+                <Photo image={first} sizes={sizes} lcp={lcp} />
+                {second && (
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 opacity-0 transition-opacity duration-700 ease-[var(--ease-out)] group-hover:opacity-100"
+                  >
+                    <Photo image={second} sizes={sizes} alt="" />
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </ViewTransition>
         <div className={`mt-4 flex flex-col gap-1 ${centered ? "items-center text-center" : ""}`}>
@@ -73,6 +79,8 @@ export function ProductCard({
               key={c.id}
               type="button"
               onClick={() => choose(c.id)}
+              onPointerEnter={() => preloadPhoto(c.images[0], sizes)}
+              onFocus={() => preloadPhoto(c.images[0], sizes)}
               aria-pressed={selected}
               aria-label={c.name}
               title={c.name}
