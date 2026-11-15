@@ -6,6 +6,7 @@ import { submitInquiry } from "@/lib/data/submissions";
 import { inquirySubmissionSchema, toFieldErrors, type FieldErrors, type InquirySubmission } from "@/lib/inquiry/schema";
 import { site } from "@/lib/site";
 import type { ResolvedLine, SentInquiry } from "./types";
+import { formatSize } from "@/lib/sizes";
 
 type FormState = {
   name: string;
@@ -141,6 +142,7 @@ export function InquiryForm({ lines, onLineErrors, onSent }: Props) {
           name: product.name,
           colorwayName: colorway.name,
           size: line.size,
+          sizeLabel: formatSize(product.kind, line.size),
           note: line.note.trim(),
           thumb: colorway.thumb,
         })),

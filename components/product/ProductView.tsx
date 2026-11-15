@@ -9,6 +9,7 @@ import { pieceTransitionName } from "@/components/layout/PageTransition";
 import { SizeGuideDialog } from "@/components/product/SizeGuideDialog";
 import { SizeSelector } from "@/components/product/SizeSelector";
 import { getChosenColorway, setChosenColorway } from "@/lib/colorway-choice";
+import { formatSize } from "@/lib/sizes";
 import { addToInquiry } from "@/lib/inquiry/store";
 import { useStickyColumn } from "@/lib/use-sticky-column";
 import type { Product, SizeGuide } from "@/lib/types";
@@ -25,7 +26,10 @@ export function ProductView({ product, sizeGuide, children }: Props) {
   // Opens on the colorway chosen on the catalog card, if any; that photo is the one that morphs in.
   const [initialColorwayId] = useState(() => getChosenColorway(product.slug, product.colorways));
   const [colorwayId, setColorwayId] = useState(initialColorwayId);
-  const [size, setSize] = useState<string | null>(null);
+  // A single size (a fragrance's one bottle) is simply chosen; there is nothing to pick.
+  const onlySize = product.sizes.length === 1 ? product.sizes[0] : null;
+  const [size, setSize] = useState<string | null>(onlySize);
+  const isGarment = product.kind === "garment";
   const [sizeMissing, setSizeMissing] = useState(false);
   const [lightboxAt, setLightboxAt] = useState<number | null>(null);
   const [notice, setNotice] = useState<AddedNotice | null>(null);
@@ -52,12 +56,12 @@ export function ProductView({ product, sizeGuide, children }: Props) {
       key: Date.now(),
       status: result.status,
       name: product.name,
-      detail: `${colorway.name} · US ${size}`,
+      detail: `${colorway.name} · ${formatSize(product.kind, size)}`,
       thumb: colorway.images[0],
     });
   }
 
-  const sizeGuideLink = <SizeGuideDialog guide={sizeGuide} />;
+  const sizeGuideLink = isGarment ? <SizeGuideDialog guide={sizeGuide} /> : undefined;
 
   return (
     <>
@@ -80,37 +84,47 @@ export function ProductView({ product, sizeGuide, children }: Props) {
             className="flex flex-col gap-8 lg:sticky lg:top-[calc(var(--header-h)+40px)] lg:max-w-[460px]"
           >
             <header className="flex flex-col gap-3">
-              <p className="label text-secondary">Made to order</p>
+              <p className="label text-secondary">{isGarment ? "Made to order" : "Fragrance"}</p>
               <h1 className="display-lg">{product.name}</h1>
               <p className="font-display text-[1.125rem] text-secondary italic">Pricing upon inquiry</p>
             </header>
 
-            <ColorwaySwatches
-              name={`${product.slug}-colorway`}
-              colorways={product.colorways}
-              value={colorway.id}
-              onPreview={(id) => {
-                const first = product.colorways.find((c) => c.id === id)?.images[0];
-                if (first) preloadGalleryPhoto(first);
-              }}
-              onChange={(id) => {
-                setColorwayId(id);
-                setChosenColorway(product.slug, id);
-              }}
-            />
+            {isGarment && (
+              <ColorwaySwatches
+                name={`${product.slug}-colorway`}
+                colorways={product.colorways}
+                value={colorway.id}
+                onPreview={(id) => {
+                  const first = product.colorways.find((c) => c.id === id)?.images[0];
+                  if (first) preloadGalleryPhoto(first);
+                }}
+                onChange={(id) => {
+                  setColorwayId(id);
+                  setChosenColorway(product.slug, id);
+                }}
+              />
+            )}
 
-            <SizeSelector
-              ref={sizeRow}
-              name={`${product.slug}-size`}
-              sizes={product.sizes}
-              value={size}
-              invalid={sizeMissing && !size}
-              onChange={(s) => {
-                setSize(s);
-                setSizeMissing(false);
-              }}
-              aside={sizeGuideLink}
-            />
+            {onlySize ? (
+              <p className="label text-secondary">
+                {product.material} <span aria-hidden="true">·</span>{" "}
+                <span className="text-ink">{formatSize(product.kind, onlySize)}</span>
+              </p>
+            ) : (
+              <SizeSelector
+                ref={sizeRow}
+                name={`${product.slug}-size`}
+                sizes={product.sizes}
+                system={isGarment ? "US" : undefined}
+                value={size}
+                invalid={sizeMissing && !size}
+                onChange={(s) => {
+                  setSize(s);
+                  setSizeMissing(false);
+                }}
+                aside={sizeGuideLink}
+              />
+            )}
 
             <button
               type="button"
@@ -133,7 +147,7 @@ export function ProductView({ product, sizeGuide, children }: Props) {
         <p className="min-w-0 flex-1 truncate text-[13px] text-secondary">
           {colorway.name}
           <span aria-hidden="true"> · </span>
-          {size ? `US ${size}` : "Choose a size"}
+          {size ? formatSize(product.kind, size) : "Choose a size"}
         </p>
         <button
           type="button"

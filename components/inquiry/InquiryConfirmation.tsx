@@ -50,7 +50,7 @@ export function InquiryConfirmation({ sent }: { sent: SentInquiry }) {
                 <div className="min-w-0">
                   <p className="font-display text-[1.25rem] leading-tight">{item.name}</p>
                   <p className="text-[14px] text-secondary">
-                    {item.colorwayName} · US {item.size}
+                    {item.colorwayName} · {item.sizeLabel}
                   </p>
                   {item.note && <p className="mt-1 text-[14px] text-secondary italic">“{item.note}”</p>}
                 </div>

@@ -14,7 +14,7 @@ export function renderInquiryEmail(inq: ResolvedInquiry) {
       (item, i) => `
       <tr><td style="padding:${i === 0 ? "0" : "16px"} 0 16px;${i < count - 1 ? `border-bottom:1px solid ${emailColors.line};` : ""}">
         <a href="${escapeHtml(item.url)}" style="${emailStyles.name}text-decoration:none;">${escapeHtml(item.name)}</a>
-        <div style="${emailStyles.body}color:${emailColors.secondary};">${escapeHtml(item.colorwayName)} · US ${escapeHtml(item.size)}</div>
+        <div style="${emailStyles.body}color:${emailColors.secondary};">${escapeHtml(item.colorwayName)} · ${escapeHtml(item.sizeLabel)}</div>
         ${item.note ? `<div style="${emailStyles.body}padding-top:6px;">“${escapeMultiline(item.note)}”</div>` : ""}
       </td></tr>`,
     )
@@ -50,7 +50,7 @@ export function renderInquiryEmail(inq: ResolvedInquiry) {
     "",
     "PIECES",
     ...inq.items.flatMap((item, i) => [
-      `${i + 1}. ${item.name} — ${item.colorwayName} · US ${item.size}`,
+      `${i + 1}. ${item.name} — ${item.colorwayName} · ${item.sizeLabel}`,
       ...(item.note ? [`   Note: ${item.note.replace(/\n/g, "\n   ")}`] : []),
       `   ${item.url}`,
     ]),

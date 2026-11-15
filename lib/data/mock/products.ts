@@ -1,5 +1,5 @@
 /**
- * The collection: six pieces.
+ * The collection: six pieces and a fragrance.
  *
  * PLACEHOLDER COPY. Descriptions, fit, materials, care and journeys are best guesses
  * written from the photographs, to be replaced with the real details. Sourcing follows
@@ -19,6 +19,7 @@ export const DEFAULT_SIZES = ["0", "2", "4", "6", "8", "10", "12", "14"];
 export const products: Product[] = [
   {
     slug: "midi",
+    kind: "garment",
     name: "Midi",
     material: "Silk satin",
     order: 1,
@@ -43,6 +44,7 @@ export const products: Product[] = [
   },
   {
     slug: "duster",
+    kind: "garment",
     name: "Duster",
     material: "Wool knit",
     order: 2,
@@ -67,6 +69,7 @@ export const products: Product[] = [
   },
   {
     slug: "blouse",
+    kind: "garment",
     name: "Blouse",
     material: "Silk satin",
     order: 3,
@@ -92,6 +95,7 @@ export const products: Product[] = [
   },
   {
     slug: "pants",
+    kind: "garment",
     name: "Pants",
     material: "Organic hemp twill",
     order: 4,
@@ -117,6 +121,7 @@ export const products: Product[] = [
   },
   {
     slug: "cardigan",
+    kind: "garment",
     name: "Cardigan",
     material: "Merino wool",
     order: 5,
@@ -142,6 +147,7 @@ export const products: Product[] = [
   },
   {
     slug: "sundress",
+    kind: "garment",
     name: "Sundress",
     material: "Silk satin",
     order: 6,
@@ -162,6 +168,26 @@ export const products: Product[] = [
     editorial: {
       line: "For the hour when the heat finally lifts.",
       images: productMedia.sundress.editorial,
+    },
+  },
+  {
+    slug: "perfume",
+    name: "Mère du Faon",
+    kind: "fragrance",
+    material: "Eau de parfum",
+    order: 7,
+    description: [
+      "A quiet, warm fragrance, made to sit close to the skin rather than fill a room.",
+      "Worn at the wrist and the collarbone, with silk.",
+    ],
+    materials: ["Notes to come"],
+    care: ["Keep the bottle away from direct sun and heat", "Close the cap after each wear"],
+    colorways: productMedia.perfume.colorways,
+    sizes: ["50 ml"],
+    journey: [],
+    editorial: {
+      line: "The last thing you put on.",
+      images: productMedia.perfume.editorial,
     },
   },
 ];

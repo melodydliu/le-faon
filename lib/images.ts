@@ -8,12 +8,15 @@
  *  run `npm run photos` to refresh it (and to re-crop the colorway swatches, which
  *  are defined in scripts/process-photos.mts).
  *
+ *  General photos (not tied to one product) live in /public/media/general/. Use
+ *  generalShot("Farm 9.jpg", "…") for those; the same `npm run photos` covers them.
+ *
  *  Colorway names are provisional until the final names are chosen. The `id` is
  *  stored with each inquiry, so rename `name` freely but keep `id` stable once live.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { photoManifest } from "./photo-manifest";
+import { generalPhotoManifest, photoManifest } from "./photo-manifest";
 import type { Colorway, ImageAsset } from "./types";
 
 /* ── Brand and home ───────────────────────────────────────────────────────── */
@@ -39,6 +42,13 @@ export function shot(path: string, alt: string): ImageAsset {
   const meta = photoManifest[path];
   if (!meta) throw new Error(`Photo not in manifest: ${path}. Run \`npm run photos\`.`);
   return { src: `/products/${path}`, alt, width: meta.width, height: meta.height, blurDataURL: meta.blur };
+}
+
+/** A photo from /public/media/general, by its file name. */
+export function generalShot(file: string, alt: string): ImageAsset {
+  const meta = generalPhotoManifest[file];
+  if (!meta) throw new Error(`Photo not in manifest: media/general/${file}. Run \`npm run photos\`.`);
+  return { src: `/media/general/${file}`, alt, width: meta.width, height: meta.height, blurDataURL: meta.blur };
 }
 
 type View = [file: string, view: string];
@@ -189,17 +199,39 @@ export const productMedia = {
       shot("Sundress/DSCF0855-2.jpg", "The flounce hem in motion, in black and white"),
     ],
   },
+  perfume: {
+    // One bottle, so a single colorway with no swatch. The first photo is the still life:
+    // it leads the catalog diptych and the piece page; the second is the diptych's portrait.
+    colorways: [
+      {
+        id: "eau-de-parfum",
+        name: "Eau de parfum",
+        images: [
+          shot("perfume/Perfume 11.jpg", "The perfume bottle on linen, in soft light"),
+          shot("perfume/Perfume 3.jpg", "Holding the perfume to the light, eyes closed"),
+          shot("perfume/Perfume 10.jpg", "Two bottles of the perfume, side by side"),
+          shot("perfume/Perfume 4.jpg", "The perfume held at the collarbone"),
+          shot("perfume/Perfume.jpg", "The bottle cupped in both hands, at dusk"),
+          shot("perfume/Perfume 6.jpg", "Applying the perfume at the mirror"),
+        ],
+      },
+    ],
+    editorial: [
+      shot("perfume/Perfume 2.jpg", "A mist of perfume in the air, in black and white"),
+      shot("perfume/Perfume 9.jpg", "Perfume at the wrist, by the window"),
+    ],
+  },
 } satisfies Record<string, ProductMedia>;
 
 /* ── Page imagery ─────────────────────────────────────────────────────────── */
 
 export const pageMedia = {
   /** Philosophy: the photograph that holds the left half of the page. */
-  philosophyImage: shot("Duster/DSCF0418.jpg", "The Duster in Mocha, on a rope swing under trees"),
+  philosophyImage: generalShot("Farm 9.jpg", "Reading by the bookshelves in a silk slip, warm lamplight"),
   /** How to Order: the photograph beside the steps. */
-  howToOrderImage: shot("Cardigan/DSCF0842.jpg", "A cardigan drying on a line"),
+  howToOrderImage: generalShot("Studio 6.jpg", "Two women in the collection beside a wooden ladder in the studio"),
   /** Contact page image. */
-  contact: shot("Midi/DSCF0626.jpg", "The Midi in Ivory under a knit duster, holding a pear"),
+  contact: generalShot("Farm 6.jpg", "Kneeling in the grass with the sheep, in a silk slip and knit duster"),
   /** Still shown on home if the hero video or poster is missing. */
   homeFallback: shot("Midi/DSCF0613.jpg", "Two women in the Midi, in an orchard at golden hour"),
 } satisfies Record<string, ImageAsset>;

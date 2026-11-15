@@ -41,10 +41,10 @@ export default async function PiecePage({ params }: PageProps<"/catalog/[slug]">
                 {product.description.map((p) => (
                   <p key={p}>{p}</p>
                 ))}
-                <p className="text-ink">{product.fit}</p>
+                {product.fit && <p className="text-ink">{product.fit}</p>}
               </div>
             </AccordionItem>
-            <AccordionItem title="Materials">
+            <AccordionItem title={product.kind === "garment" ? "Materials" : "Notes"}>
               <ul className="flex flex-col gap-1.5">
                 {product.materials.map((m) => (
                   <li key={m}>{m}</li>
@@ -61,7 +61,7 @@ export default async function PiecePage({ params }: PageProps<"/catalog/[slug]">
             <AccordionItem title="How ordering works">
               <p>
                 Each piece begins with an inquiry and moves through a one-to-one process. Add this piece to your
-                inquiry with your size and colorway, and we will reply personally with pricing and the next steps.
+                inquiry{product.kind === "garment" && " with your size and colorway"}, and we will reply personally with pricing and the next steps.
               </p>
               <Link href="/how-to-order" className="link-quiet mt-3 inline-flex min-h-11 items-center text-ink">
                 How to Order

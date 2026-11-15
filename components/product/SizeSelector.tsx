@@ -4,6 +4,8 @@ import type { ReactNode, Ref } from "react";
 
 type Props = {
   sizes: string[];
+  /** The sizing system, named in the legend, e.g. "US". */
+  system?: string;
   value: string | null;
   onChange: (size: string) => void;
   name: string;
@@ -15,14 +17,22 @@ type Props = {
 };
 
 /** US sizes as plain numerals; a hairline circle marks the chosen one. Each is a 44px target. */
-export function SizeSelector({ sizes, value, onChange, name, invalid = false, aside, ref }: Props) {
+export function SizeSelector({ sizes, system, value, onChange, name, invalid = false, aside, ref }: Props) {
   return (
     <fieldset
       ref={ref}
       aria-describedby={invalid ? `${name}-hint` : undefined}
       className={`relative -mx-3 scroll-mt-32 px-3 py-3 transition-colors duration-500 ${invalid ? "bg-surface" : "bg-transparent"}`}
     >
-      <legend className="label float-left text-secondary">Size · US</legend>
+      <legend className="label float-left text-secondary">
+        Size
+        {system && (
+          <>
+            {" "}
+            <span aria-hidden="true">·</span> {system}
+          </>
+        )}
+      </legend>
       {aside && <div className="absolute top-3 right-3">{aside}</div>}
 
       <div className="clear-both -ml-3 flex flex-wrap pt-2">

@@ -8,7 +8,7 @@ import { PageTransition } from "@/components/layout/PageTransition";
 
 export const metadata: Metadata = pageMetadata({
   title: "Catalog",
-  description: "The Le Faon collection: made-to-order pieces in cotton, silk, hemp and wool.",
+  description: "The Le Faon collection: made-to-order pieces in cotton, silk, hemp and wool, and a fragrance.",
   path: "/catalog",
 });
 
@@ -27,7 +27,10 @@ export default async function CatalogPage() {
 
   return (
     <PageTransition>
-      <CatalogIntro count={products.length} />
+      <CatalogIntro
+        pieces={products.filter((p) => p.kind === "garment").length}
+        fragrances={products.filter((p) => p.kind === "fragrance").length}
+      />
       <CatalogGrid products={products} />
     </PageTransition>
   );

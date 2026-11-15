@@ -4,6 +4,7 @@
  */
 
 import type { FieldErrors, ValidInquirySubmission } from "@/lib/inquiry/schema";
+import { formatSize } from "@/lib/sizes";
 import type { Product, ShippingAddress } from "@/lib/types";
 
 export type ResolvedItem = {
@@ -12,6 +13,8 @@ export type ResolvedItem = {
   colorway: string;
   colorwayName: string;
   size: string;
+  /** As people read it, e.g. "US 4" or "50 ml". */
+  sizeLabel: string;
   note: string;
   url: string;
 };
@@ -50,6 +53,7 @@ export function resolveInquiry(
       colorway: colorway.id,
       colorwayName: colorway.name,
       size: item.size,
+      sizeLabel: formatSize(product.kind, item.size),
       note: item.note,
       url: new URL(`/catalog/${product.slug}`, baseUrl).toString(),
     });

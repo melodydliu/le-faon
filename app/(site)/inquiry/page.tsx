@@ -19,6 +19,7 @@ export default async function InquiryPage() {
   const products: InquiryProduct[] = (await listProducts()).map((p) => ({
     slug: p.slug,
     name: p.name,
+    kind: p.kind,
     sizes: p.sizes,
     colorways: p.colorways.map((c) => ({ id: c.id, name: c.name, thumb: c.images[0] })),
   }));

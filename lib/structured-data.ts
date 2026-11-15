@@ -2,6 +2,7 @@
 import { brandMedia } from "@/lib/images";
 import { absoluteUrl } from "@/lib/seo";
 import { site } from "@/lib/site";
+import { formatSize } from "@/lib/sizes";
 import type { Product } from "@/lib/types";
 
 export function organizationJsonLd() {
@@ -29,7 +30,7 @@ export function productJsonLd(product: Product) {
     image: [...new Set(images)],
     material: product.material,
     color: product.colorways.map((c) => c.name).join(", "),
-    size: product.sizes.map((s) => `US ${s}`).join(", "),
+    size: product.sizes.map((s) => formatSize(product.kind, s)).join(", "),
     brand: { "@type": "Brand", name: site.name },
     manufacturer: { "@id": absoluteUrl("/#organization") },
     // No price or offer: every piece is made to order and priced upon inquiry.

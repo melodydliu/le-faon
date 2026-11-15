@@ -6,6 +6,7 @@ import { useState } from "react";
 import { InlineSelect } from "@/components/ui/fields";
 import { NOTE_MAX } from "@/lib/inquiry/schema";
 import { removeFromInquiry, updateInquiryLine } from "@/lib/inquiry/store";
+import { formatSize } from "@/lib/sizes";
 import type { ResolvedLine } from "./types";
 
 /**
@@ -63,7 +64,7 @@ export function InquiryLineItem({ resolved, error }: { resolved: ResolvedLine; e
         {!open && (
           <>
             <p className="text-[14px] text-secondary">
-              {colorway.name} <span aria-hidden="true">·</span> US {line.size}
+              {colorway.name} <span aria-hidden="true">·</span> {formatSize(product.kind, line.size)}
             </p>
             {line.note && <p className="text-[14px] text-muted italic">“{line.note}”</p>}
           </>
@@ -71,7 +72,10 @@ export function InquiryLineItem({ resolved, error }: { resolved: ResolvedLine; e
 
         {open && (
           <div id={`${base}-edit`} className="mt-2 flex flex-col gap-3">
+            {/* Only the choices this piece actually has: a fragrance has one bottle, so just the note. */}
+            {(product.colorways.length > 1 || product.sizes.length > 1) && (
             <div className="grid grid-cols-2 gap-4">
+              {product.colorways.length > 1 && (
               <InlineSelect
                 id={`${base}-colorway`}
                 label="Color"
@@ -84,6 +88,8 @@ export function InquiryLineItem({ resolved, error }: { resolved: ResolvedLine; e
                   </option>
                 ))}
               </InlineSelect>
+              )}
+              {product.sizes.length > 1 && (
               <InlineSelect
                 id={`${base}-size`}
                 label="Size"
@@ -92,11 +98,13 @@ export function InquiryLineItem({ resolved, error }: { resolved: ResolvedLine; e
               >
                 {product.sizes.map((s) => (
                   <option key={s} value={s}>
-                    US {s}
+                    {formatSize(product.kind, s)}
                   </option>
                 ))}
               </InlineSelect>
+              )}
             </div>
+            )}
 
             <div className="flex flex-col gap-0.5">
               <label htmlFor={`${base}-note`} className="text-[10px] tracking-[0.16em] text-muted uppercase">

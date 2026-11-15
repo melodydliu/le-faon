@@ -48,7 +48,8 @@ export function OrderingSteps({ content, image }: { content: OrderingContent; im
         <aside className="hidden lg:col-span-4 lg:col-start-9 lg:block xl:col-span-4 xl:col-start-9">
           <div className="sticky top-[calc(var(--header-h)+40px)] flex flex-col gap-5">
             <div className="relative aspect-[4/5] max-h-[calc(100svh-var(--header-h)-160px)] w-full bg-surface">
-              <Photo image={image} fit="cover" lcp sizes="30vw" className="object-[center_30%]" />
+              {/* Weighted low so a full-length photo keeps its feet in frame. */}
+              <Photo image={image} fit="cover" lcp sizes="30vw" className="object-[center_75%]" />
             </div>
             <div className="flex items-baseline justify-between gap-4 border-t border-line pt-4">
               <p className="font-display text-[1.25rem] italic">Ready to begin?</p>

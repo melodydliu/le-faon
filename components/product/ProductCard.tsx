@@ -67,46 +67,50 @@ export function ProductCard({
         </div>
       </Link>
 
-      <div
-        role="group"
-        aria-label={`${product.name} colors`}
-        className={`mt-1 flex flex-wrap ${centered ? "justify-center" : "-ml-2"}`}
-      >
-        {product.colorways.map((c) => {
-          const selected = c.id === colorway.id;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => choose(c.id)}
-              onPointerEnter={() => preloadPhoto(c.images[0], sizes)}
-              onFocus={() => preloadPhoto(c.images[0], sizes)}
-              aria-pressed={selected}
-              aria-label={c.name}
-              title={c.name}
-              className="group/swatch flex min-h-11 min-w-9 cursor-pointer items-center justify-center focus-visible:outline-none"
-            >
-              <span
-                className={`block w-5 outline-1 outline-offset-2 transition-[outline-color] duration-300 group-focus-visible/swatch:outline-ink ${
-                  selected ? "outline-accent" : "outline-transparent group-hover/swatch:outline-line-strong"
-                }`}
-                style={{ outlineStyle: "solid" }}
+      {product.kind === "garment" && (
+        <div
+          role="group"
+          aria-label={`${product.name} colors`}
+          className={`mt-1 flex flex-wrap ${centered ? "justify-center" : "-ml-2"}`}
+        >
+          {product.colorways.map((c) => {
+            const selected = c.id === colorway.id;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => choose(c.id)}
+                onPointerEnter={() => preloadPhoto(c.images[0], sizes)}
+                onFocus={() => preloadPhoto(c.images[0], sizes)}
+                aria-pressed={selected}
+                aria-label={c.name}
+                title={c.name}
+                className="group/swatch flex min-h-11 min-w-9 cursor-pointer items-center justify-center focus-visible:outline-none"
               >
-                <Image
-                  src={c.swatch.src}
-                  alt=""
-                  width={c.swatch.width}
-                  height={c.swatch.height}
-                  sizes="20px"
-                  placeholder="blur"
-                  blurDataURL={c.swatch.blurDataURL}
-                  className="block h-auto w-full border border-line"
-                />
-              </span>
-            </button>
-          );
-        })}
-      </div>
+                <span
+                  className={`block w-5 outline-1 outline-offset-2 transition-[outline-color] duration-300 group-focus-visible/swatch:outline-ink ${
+                    selected ? "outline-accent" : "outline-transparent group-hover/swatch:outline-line-strong"
+                  }`}
+                  style={{ outlineStyle: "solid" }}
+                >
+                  {c.swatch && (
+                    <Image
+                      src={c.swatch.src}
+                      alt=""
+                      width={c.swatch.width}
+                      height={c.swatch.height}
+                      sizes="20px"
+                      placeholder="blur"
+                      blurDataURL={c.swatch.blurDataURL}
+                      className="block h-auto w-full border border-line"
+                    />
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

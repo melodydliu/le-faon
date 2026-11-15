@@ -55,16 +55,18 @@ export function ColorwaySwatches({ colorways, value, onChange, onPreview, name }
                 }`}
                 style={{ outlineStyle: "solid" }}
               >
-                <Image
-                  src={c.swatch.src}
-                  alt=""
-                  width={c.swatch.width}
-                  height={c.swatch.height}
-                  sizes="48px"
-                  placeholder="blur"
-                  blurDataURL={c.swatch.blurDataURL}
-                  className="block h-auto w-full border border-line"
-                />
+                {c.swatch && (
+                  <Image
+                    src={c.swatch.src}
+                    alt=""
+                    width={c.swatch.width}
+                    height={c.swatch.height}
+                    sizes="48px"
+                    placeholder="blur"
+                    blurDataURL={c.swatch.blurDataURL}
+                    className="block h-auto w-full border border-line"
+                  />
+                )}
               </span>
             </label>
           );
