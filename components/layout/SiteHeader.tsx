@@ -57,8 +57,14 @@ function HeaderView({ pathname }: { pathname: string }) {
                   <Link
                     href={link.href}
                     aria-current={active ? "page" : undefined}
-                    className={`label inline-flex min-h-11 items-center transition-colors duration-300 ${
-                      active ? "text-ink" : "text-secondary hover:text-ink"
+                    // The current page carries the home page's hairline, drawn from the center; hover only darkens
+                    // the text, so the line always means "you are here". Its right edge stops short of the tracking
+                    // after the last letter, so it spans the word. The old page's line clears (200ms) before the
+                    // new one draws (500ms).
+                    className={`label relative inline-flex min-h-11 items-center transition-colors duration-300 after:absolute after:bottom-2.5 after:left-0 after:right-[var(--label-tracking)] after:h-px after:origin-center after:bg-current after:transition-transform after:ease-[var(--ease-out)] ${
+                      active
+                        ? "text-ink after:scale-x-100 after:duration-500 after:delay-200"
+                        : "text-secondary after:scale-x-0 after:duration-200 hover:text-ink"
                     }`}
                   >
                     {link.label}
