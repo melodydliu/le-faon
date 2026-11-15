@@ -42,3 +42,6 @@ next-env.d.ts
 
 !.env.example
 .DS_Store
+
+# Source footage: too large for git; the web encode lives in public/media
+/public/video/
